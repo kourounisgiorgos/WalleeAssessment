@@ -3,7 +3,6 @@ package com.kourounis.walleeassesmentkourounis.views
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,13 +30,31 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kourounis.walleeassesmentkourounis.ui.theme.WalleeAssesmentKourounisTheme
+import com.kourounis.walleeassesmentkourounis.view.models.ReceiptViewModel
 
 
 @Composable
 fun PinPadScreen(
-    onReceipt: (() -> Unit?)? = null
+    viewModel: ReceiptViewModel,
+    onReceipt: () -> Unit
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    PinPadContent(
+        loading = state.loading,
+        onReceipt = { viewModel.fetchReceipt(onReceipt) }
+    )
+}
+
+@Composable
+fun PinPadContent(
+    loading: Boolean = false,
+    onReceipt: (() -> Unit)? = null
+) {
+
+
     var amount by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -84,14 +102,14 @@ fun PinPadScreen(
 
 
         NumericKeypad(
+            modifier = Modifier.weight(4f),
             onNumberClick = { digit ->
                 if (amount.length < 10) amount += digit
             },
-            onReceipt = {
-                onReceipt?.invoke()
-            },
-            modifier = Modifier.weight(3f)
+            onReceipt = onReceipt,
+            loading = loading
         )
+
     }
 }
 
@@ -99,7 +117,8 @@ fun PinPadScreen(
 fun NumericKeypad(
     onNumberClick: (String) -> Unit,
     onReceipt: (() -> Unit?)?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    loading: Boolean
 ) {
     val keys = listOf(
         listOf("1", "2", "3"),
@@ -108,9 +127,11 @@ fun NumericKeypad(
         listOf(".", "0", "OK")
     )
 
-    Column(modifier = modifier
-        .fillMaxWidth()
-        .background(Color(0XFFF6F6F6))) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color(0XFFF6F6F6))
+    ) {
         for (row in keys) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 for (key in row) {
@@ -121,15 +142,19 @@ fun NumericKeypad(
                                 .aspectRatio(1f)
                                 .padding(vertical = 26.dp, horizontal = 8.dp)
                                 .background(Color(0xFF0DA69C), RoundedCornerShape(16.dp))
-                                .clickable { onReceipt?.invoke() },
+                                .clickable(enabled = !loading) { onReceipt?.invoke() },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = key,
-                                style = MaterialTheme.typography.headlineLarge,
-                                color = Color.White,
-                                textAlign = TextAlign.Center
-                            )
+                            if (loading) {
+                                CircularProgressIndicator(color = Color.White)
+                            }else{
+                                Text(
+                                    text = key,
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    color = Color.White,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     } else {
                         Box(
@@ -137,7 +162,7 @@ fun NumericKeypad(
                                 .weight(1f)
                                 .aspectRatio(1f)
                                 .padding(4.dp)
-                                .clickable { onNumberClick(key) },
+                                .clickable(enabled = !loading) { onNumberClick(key) },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -158,7 +183,7 @@ fun NumericKeypad(
 @Preview(showBackground = true)
 @Composable
 fun PreviewAmountInputScreen() {
-    WalleeAssesmentKourounisTheme{
-        PinPadScreen()
+    WalleeAssesmentKourounisTheme {
+        PinPadContent()
     }
 }
