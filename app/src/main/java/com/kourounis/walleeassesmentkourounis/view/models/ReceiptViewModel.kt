@@ -18,11 +18,11 @@ class ReceiptViewModel @Inject constructor(
 
     data class UiState(
         val loading: Boolean = false,
+        val error: Boolean = false,
     )
 
     val state = MutableStateFlow(UiState())
     val receipt = MutableStateFlow<Receipt?>(null)
-    val error = MutableStateFlow<String?>(null)
 
     fun fetchReceipt(onReceipt: () -> Unit) {
 
@@ -36,10 +36,10 @@ class ReceiptViewModel @Inject constructor(
                 receipt.value = response.body()
                 onReceipt.invoke()
             } else {
-                error.value = "Error: ${response.code()}"
+                state.update { it.copy(error = true) }
             }
 
-            state.update { it.copy(loading = false) }
+            state.update { it.copy(loading = false, error = false) }
         }
     }
 

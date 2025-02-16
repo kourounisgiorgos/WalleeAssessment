@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.kourounis.walleeassesmentkourounis.views.PinPadScreen
+import com.kourounis.walleeassesmentkourounis.views.ReceiptScreen
 
 
 @Composable
@@ -49,7 +50,15 @@ private fun NavGraphBuilder.mainGraph(
                     current = it,
                     route = "main"
                 ),
-                onReceipt = {}
+                onReceipt = { navController.navigate("main/receipt-screen")}
+            )
+        }
+        composable("main/receipt-screen") {
+            ReceiptScreen(
+                viewModel = navController.navigationViewModel(
+                    current = it,
+                    route = "main"
+                ),
             )
         }
     }
